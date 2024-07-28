@@ -1,0 +1,14 @@
+[tool.poetry]
+name = "knots-pipe-internals"
+version = "0.1.0"
+description = "store source configs, scripts and build recipes needing to be deploye don the server"
+authors = ["Liam Collod <lcollod@gmail.com>"]
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.10"
+black = "*"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
