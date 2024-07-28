@@ -11,6 +11,7 @@ The script will verify:
 - the version is not already deployed
 """
 
+import argparse
 import datetime
 import json
 import logging
@@ -29,9 +30,6 @@ THIS_DIR = Path(__file__).parent.resolve()
 
 LOGGER = logging.getLogger(Path(__file__).stem)
 
-# XXX: intentional hardcoded path
-KNOTS_SERVER_DEPLOY_ROOT = Path(r"N:\apps\knots-hub\builds")
-SKIP_CHECKS = False
 BUILD_SCRIPT = THIS_DIR / "build-app-nuitka.py"
 
 
@@ -148,6 +146,30 @@ def deploy(
     )
 
 
+def cli(argv=None):
+    argv = argv or sys.argv[1:]
+    parser = argparse.ArgumentParser(
+        description="package knots-hub to a standalone executable and deploy it on the server.",
+    )
+    parser.add_argument(
+        "deploy_root",
+        type=Path,
+        help="filesystem path to an existing directory to deploy builds to.",
+    )
+    parser.add_argument(
+        "--skip_checks",
+        action="store_true",
+        default=False,
+        help="prevent running filesystem check before build",
+    )
+    parsed = parser.parse_args(argv)
+    deploy(
+        deploy_root=parsed.deploy_root,
+        build_script=BUILD_SCRIPT,
+        skip_checks=parsed.skip_checks,
+    )
+
+
 if __name__ == "__main__":
     logging.basicConfig(
         level=logging.INFO,
@@ -155,8 +177,4 @@ if __name__ == "__main__":
         style="{",
         stream=sys.stdout,
     )
-    deploy(
-        deploy_root=KNOTS_SERVER_DEPLOY_ROOT,
-        build_script=BUILD_SCRIPT,
-        skip_checks=SKIP_CHECKS,
-    )
+    cli()
