@@ -88,6 +88,7 @@ def deploy(
     deploy_root: Path,
     build_script: Path,
     skip_checks=False,
+    icon_path: Path = None,
 ):
     build_version = knots_hub.__version__
     build_dir = tempfile.mkdtemp(prefix="knots-hub-dev-deploy-")
@@ -117,6 +118,9 @@ def deploy(
         "--target_dir",
         str(build_dir),
     ]
+    if icon_path:
+        sys.argv.extend(["--icon_path", str(icon_path)])
+
     LOGGER.info("building ...")
     runpy.run_path(str(build_script), run_name="__main__")
 
@@ -157,6 +161,12 @@ def cli(argv=None):
         help="filesystem path to an existing directory to deploy builds to.",
     )
     parser.add_argument(
+        "--icon_path",
+        type=Path,
+        default=None,
+        help="filesystem path to an existing .ico or .png file.",
+    )
+    parser.add_argument(
         "--skip_checks",
         action="store_true",
         default=False,
@@ -167,6 +177,7 @@ def cli(argv=None):
         deploy_root=parsed.deploy_root,
         build_script=BUILD_SCRIPT,
         skip_checks=parsed.skip_checks,
+        icon_path=parsed.icon_path,
     )
 
 

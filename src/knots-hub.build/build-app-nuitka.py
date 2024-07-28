@@ -87,6 +87,12 @@ def cli(argv=None):
         help="filename of the executable without the extension",
     )
     parser.add_argument(
+        "--icon_path",
+        type=Path,
+        default=knots_hub.constants.EXECUTABLE_NAME,
+        help="filesystem path to an existing .ico or .png file.",
+    )
+    parser.add_argument(
         "--target_dir",
         type=Path,
         default=targetdir,
@@ -104,7 +110,7 @@ def cli(argv=None):
         start_script_path=parsed.script_path,
         target_dir=parsed.target_dir,
         overwrite_existing=False if parsed.no_overwrite else True,
-        icon_path=None,
+        icon_path=parsed.icon_path,
     )
 
 

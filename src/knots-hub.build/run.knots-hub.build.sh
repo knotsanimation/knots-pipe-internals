@@ -16,5 +16,6 @@ git clone https://github.com/knotsanimation/knots-hub.git knots-hub
 poetry init --name knots-hub-build --no-interaction --python ^3.10
 poetry add ./knots-hub/
 poetry add nuitka==2.4.2
+poetry add imageio  # needed by nuitka for icon conversion
 echo "running build script '$pyscript'"
-poetry run python "$pyscript" "N:\apps\knots-hub\builds"
+poetry run python "$pyscript" "N:\apps\knots-hub\builds" --icon_path "$PWD/knots-hub/icon.png"
