@@ -7,6 +7,8 @@ import time
 from pathlib import Path
 from typing import Optional
 
+import PIL.Image
+
 import knots_hub
 import kloch_rezenv
 import kloch_kiche
@@ -14,6 +16,23 @@ import kloch_kiche
 THIS_DIR = Path(__file__).parent.resolve()
 
 LOGGER = logging.getLogger(Path(__file__).stem)
+
+
+def create_ico(src_image_path: Path, dst_path: Path):
+    image = PIL.Image.open(src_image_path)
+    image.save(
+        dst_path,
+        sizes=[
+            (16, 16),
+            (24, 24),
+            (32, 32),
+            (48, 48),
+            (64, 64),
+            (128, 128),
+            (256, 256),
+        ],
+        bitmap_format="png",
+    )
 
 
 def build(
@@ -43,7 +62,10 @@ def build(
     ]
     # windows specific
     if icon_path:
-        command += [f"--windows-icon-from-ico={icon_path}"]
+        build_icon_path = workdir / "icon.ico"
+        LOGGER.info(f"generating icon '{build_icon_path}'")
+        create_ico(icon_path, build_icon_path)
+        command += [f"--windows-icon-from-ico={build_icon_path}"]
 
     # always last
     command += [start_script_path]
@@ -63,6 +85,8 @@ def build(
 
     LOGGER.info("copying build ...")
     shutil.copytree(build_src_dir, target_dir)
+    if icon_path:
+        shutil.copy(build_icon_path, target_dir / "icon.ico")
 
     LOGGER.info(f"build finished in {time.time() - stime}s")
 
@@ -71,6 +95,8 @@ def cli(argv=None):
     argv = argv or sys.argv[1:]
     workdir = THIS_DIR / ".workspace" / "nuitka"
     targetdir = THIS_DIR / ".workspace" / "build"
+
+    workdir.mkdir(parents=True, exist_ok=True)
 
     parser = argparse.ArgumentParser(
         description="package knots-hub to a standalone executable",
