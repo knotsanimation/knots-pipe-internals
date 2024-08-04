@@ -126,6 +126,10 @@ def deploy(
             )
         LOGGER.info(f"creating 'latest' build to '{deployed_latest_dir}'")
         deploy_latest_dir(deployed_dir, deployed_latest_dir)
+
+        build_info_path = deployed_latest_dir / ".deploy.info"
+        LOGGER.info(f"creating build info file at '{build_info_path}'")
+        create_build_info(target_path=build_info_path, version=build_version)
         return
 
     if not skip_checks:
@@ -157,8 +161,8 @@ def deploy(
 
     LOGGER.info(f"deploying build to '{deployed_dir}'")
     shutil.copytree(build_dir, deployed_dir)
-    LOGGER.info(f"creating build info")
     build_info_path = deployed_dir / ".build.info"
+    LOGGER.info(f"creating build info file at '{build_info_path}'")
     create_build_info(target_path=build_info_path, version=build_version)
 
     LOGGER.info(f"creating 'latest' build to '{deployed_latest_dir}'")
@@ -173,6 +177,10 @@ def deploy(
         build_version=build_version,
         build_path=deployed_dir.relative_to(installs_list_path.parent),
     )
+
+    build_info_path = deploy_root / "deploy.info"
+    LOGGER.info(f"creating build info file at '{build_info_path}'")
+    create_build_info(target_path=build_info_path, version=build_version)
 
 
 def cli(argv=None):
