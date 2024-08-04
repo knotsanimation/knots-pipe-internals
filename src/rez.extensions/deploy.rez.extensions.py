@@ -1,3 +1,4 @@
+import contextlib
 import datetime
 import os
 import shutil
@@ -52,18 +53,37 @@ def rmtree(path: Path):
     tempfile.TemporaryDirectory._rmtree(path)
 
 
+@contextlib.contextmanager
+def backupdir(src_dir: Path):
+    """
+    Delete the given directory and make a backup out of it, restored if any error happen.
+    """
+    backup_path = src_dir.with_stem(f"{src_dir.stem}.backup")
+    print(f"creating backup '{backup_path}'")
+    src_dir.rename(backup_path)
+    try:
+        yield
+    except:
+        print(f"upcomming error: reverting to backup")
+        rmtree(src_dir)
+        backup_path.rename(src_dir)
+        raise
+    else:
+        print(f"removing backup '{backup_path}'")
+        rmtree(backup_path)
+
+
 WORKDIR = THISDIR / ".workspace"
 if WORKDIR.exists():
     rmtree(WORKDIR)
 WORKDIR.mkdir()
-
-DEPLOY_ROOT = Path(r"N:\apps")
-DST_EXTENSIONS_DIR = DEPLOY_ROOT / "rez" / "extensions"
-DST_BUILD_INFO = DST_EXTENSIONS_DIR / "deploy.info"
 SRC_REPODIR = WORKDIR / "rez_extensions"
-SRC_PATHS_MAPPING = {
-    SRC_REPODIR / "include": DST_EXTENSIONS_DIR / "include",
-    SRC_REPODIR / "rezplugins": DST_EXTENSIONS_DIR / "rezplugins",
+
+DST_DIR = Path(r"N:\apps\rez\extensions")
+DST_BUILD_INFO = DST_DIR / "deploy.info"
+DST_PATHS_MAPPING = {
+    SRC_REPODIR / "include": DST_DIR / "include",
+    SRC_REPODIR / "rezplugins": DST_DIR / "rezplugins",
 }
 
 REPO_REMOTE_URL = "https://github.com/knotsanimation/rez_extensions.git"
@@ -71,40 +91,16 @@ command = ["git", "clone", REPO_REMOTE_URL, str(SRC_REPODIR)]
 print(f"running '{' '.join(command)}'")
 subprocess.run(command, cwd=WORKDIR)
 
-DST_EXTENSIONS_DIR_BACKUP = DST_EXTENSIONS_DIR.with_name(
-    f"{DST_EXTENSIONS_DIR.name}.backup"
-)
-if DST_EXTENSIONS_DIR_BACKUP.exists():
-    # safety in case a previous deploy failed to clean it
-    rmtree(DST_EXTENSIONS_DIR_BACKUP)
-print(f"creating backup '{DST_EXTENSIONS_DIR_BACKUP}'")
-DST_EXTENSIONS_DIR.rename(DST_EXTENSIONS_DIR_BACKUP)
-DST_EXTENSIONS_DIR.mkdir()
-
-try:
-    for src_path, dst_path in SRC_PATHS_MAPPING.items():
+with backupdir(DST_DIR):
+    for src_path, dst_path in DST_PATHS_MAPPING.items():
         print(f"deploying '{src_path}' to '{dst_path}'")
         if src_path.is_file():
-            if dst_path.exists():
-                dst_path.unlink()
             shutil.copy2(src_path, dst_path)
         else:
-            if dst_path.exists():
-                shutil.rmtree(dst_path)
             shutil.copytree(src_path, dst_path)
 
         print(f"setting to read-only '{dst_path}'")
         set_path_read_only(dst_path)
-
-except:
-    # revert as it was before
-    print(f"upcomming error: reverting to backup")
-    rmtree(DST_EXTENSIONS_DIR)
-    DST_EXTENSIONS_DIR_BACKUP.rename(DST_EXTENSIONS_DIR)
-    raise
-
-print(f"removing backup '{DST_EXTENSIONS_DIR_BACKUP}'")
-rmtree(DST_EXTENSIONS_DIR_BACKUP)
 
 print(f"creating build info file at '{DST_BUILD_INFO}'")
 create_build_info(target_path=DST_BUILD_INFO)
