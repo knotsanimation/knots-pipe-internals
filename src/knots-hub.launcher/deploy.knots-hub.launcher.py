@@ -1,6 +1,8 @@
 import datetime
+import os
 import shutil
 import socket
+import stat
 import subprocess
 from pathlib import Path
 
@@ -34,6 +36,18 @@ def add_build_info(batch_path: Path):
     batch_path.write_text(new_content, encoding="utf-8")
 
 
+def set_path_read_only(path: Path):
+    """
+    Remove write permissions for everyone on the given file without modifying other permissions.
+
+    Reference: https://stackoverflow.com/a/38511116/13806195
+    """
+    # NO_USER_WRITING & NO_GROUP_WRITING & NO_OTHER_WRITING
+    NO_WRITING = ~stat.S_IWUSR & ~stat.S_IWGRP & ~stat.S_IWOTH
+    current_permissions = stat.S_IMODE(os.lstat(path).st_mode)
+    os.chmod(path, current_permissions & NO_WRITING)
+
+
 DEPLOY_ROOT = Path(r"N:\apps\knots-hub")
 SRC_LAUNCHER_PATH = THISDIR / "src-launcher.bat"
 DST_LAUNCHER_DIR = DEPLOY_ROOT / "builds"
@@ -46,6 +60,8 @@ print(f"copying '{SRC_LAUNCHER_PATH}' to '{DST_LAUNCHER_PATH}'")
 shutil.copy(SRC_LAUNCHER_PATH, DST_LAUNCHER_PATH)
 print("adding build info")
 add_build_info(DST_LAUNCHER_PATH)
+print(f"setting to read-only: {DST_LAUNCHER_PATH}")
+set_path_read_only(DST_LAUNCHER_PATH)
 
 # we create a shortcut just to add an icon and so people can easily copy it on their
 # desktop while still allowing use to update the code if needed
@@ -63,3 +79,5 @@ subprocess.run(
         str(LATEST_BUILD_ICON_PATH),
     ]
 )
+print(f"setting to read-only: {DST_LAUNCHER_LNK_PATH}")
+set_path_read_only(DST_LAUNCHER_LNK_PATH)
