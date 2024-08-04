@@ -21,6 +21,7 @@ import socket
 import subprocess
 import sys
 import tempfile
+import time
 from pathlib import Path
 from typing import Optional
 
@@ -94,8 +95,10 @@ def update_installer_list(
 
 def deploy_latest_dir(src_dir: Path, dst_dir: Path):
     if dst_dir.exists():
-        LOGGER.debug(f"removing '{dst_dir}'")
+        LOGGER.debug(f"removing existing '{dst_dir}'")
         shutil.rmtree(dst_dir)
+        # XXX: try to fix bug where copytree still complain the directory exists
+        time.sleep(0.25)
     shutil.copytree(src_dir, dst_dir)
     deploy_exe_latest_path = next(
         dst_dir.glob(knots_hub.constants.EXECUTABLE_NAME + "*")
