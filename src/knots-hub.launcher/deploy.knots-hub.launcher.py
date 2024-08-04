@@ -1,18 +1,17 @@
+import contextlib
 import datetime
 import os
 import shutil
 import socket
 import stat
 import subprocess
+import tempfile
 from pathlib import Path
 
 THISDIR = Path(__file__).parent
 
-SHORTCUT_SCRIPT_PATH = THISDIR / "create-windows-shortcut.ps1"
 
-
-def add_build_info(batch_path: Path):
-    content = batch_path.read_text(encoding="utf-8")
+def create_build_info(target_path: Path):
     git_command = ["git", "rev-parse", "HEAD"]
     commit_hash = subprocess.check_output(git_command, cwd=THISDIR, text=True)
     commit_hash = commit_hash.strip("\n")
@@ -20,10 +19,11 @@ def add_build_info(batch_path: Path):
     try:
         git_command = ["git", "config", "remote.origin.url"]
         remote_url = subprocess.check_output(git_command, cwd=THISDIR, text=True)
+
     except Exception as error:
         remote_url = str(error)
 
-    build_info = ";".join(
+    build_info = "\n".join(
         [
             f"date={datetime.datetime.now()}",
             f"machine={socket.gethostname()}",
@@ -32,8 +32,7 @@ def add_build_info(batch_path: Path):
             f"remote={remote_url}",
         ]
     )
-    new_content = f":: {build_info}\n{content}"
-    batch_path.write_text(new_content, encoding="utf-8")
+    target_path.write_text(build_info, encoding="utf-8")
 
 
 def set_path_read_only(path: Path):
@@ -48,23 +47,55 @@ def set_path_read_only(path: Path):
     os.chmod(path, current_permissions & NO_WRITING)
 
 
-DEPLOY_ROOT = Path(r"N:\apps\knots-hub")
+def rmtree(path: Path):
+    # XXX: hack to avoid permission issues that even a chmod + shutil.rmtree(onerror=) can't fix
+    # noinspection PyProtectedMember
+    tempfile.TemporaryDirectory._rmtree(path)
+
+
+@contextlib.contextmanager
+def backupdir(src_dir: Path):
+    """
+    Delete the given directory and make a backup out of it, restored if any error happen.
+    """
+    backup_path = src_dir.with_stem(f"{src_dir.stem}.backup")
+    print(f"creating backup '{backup_path}'")
+    src_dir.rename(backup_path)
+    try:
+        yield
+    except:
+        print(f"upcomming error: reverting to backup")
+        rmtree(src_dir)
+        backup_path.rename(src_dir)
+        raise
+    else:
+        print(f"removing backup '{backup_path}'")
+        rmtree(backup_path)
+
+
+DST_ROOT = Path(r"N:\apps\knots-hub")
+
+SHORTCUT_SCRIPT_PATH = THISDIR / "create-windows-shortcut.ps1"
+SRC_ICON_PATH = DST_ROOT / "builds" / "latest" / "icon.ico"
 SRC_LAUNCHER_PATH = THISDIR / "src-launcher.bat"
-DST_LAUNCHER_DIR = DEPLOY_ROOT / "builds"
-DST_LAUNCHER_PATH = DST_LAUNCHER_DIR / "knots-hub-launcher.bat"
-DST_LAUNCHER_LNK_PATH = DEPLOY_ROOT / "knots-hub.lnk"
-LATEST_BUILD_ICON_PATH = DEPLOY_ROOT / "builds" / "latest" / "icon.ico"
 
-DST_LAUNCHER_DIR.mkdir(exist_ok=True)
-print(f"copying '{SRC_LAUNCHER_PATH}' to '{DST_LAUNCHER_PATH}'")
-shutil.copy(SRC_LAUNCHER_PATH, DST_LAUNCHER_PATH)
-print("adding build info")
-add_build_info(DST_LAUNCHER_PATH)
-print(f"setting to read-only: {DST_LAUNCHER_PATH}")
-set_path_read_only(DST_LAUNCHER_PATH)
+DST_DIR = DST_ROOT / "launchers"
+DST_DIR.mkdir(exist_ok=True)
+DST_BUILD_INFO = DST_DIR / "deploy.info"
+DST_LAUNCHER_PATH = DST_DIR / "knots-hub-launcher.bat"
+DST_LAUNCHER_LNK_PATH = DST_ROOT / "knots-hub.lnk"
 
-# we create a shortcut just to add an icon and so people can easily copy it on their
-# desktop while still allowing use to update the code if needed
+with backupdir(DST_DIR):
+    DST_DIR.mkdir()
+    print(f"deploying '{SRC_LAUNCHER_PATH}' to '{DST_LAUNCHER_PATH}'")
+    shutil.copy2(SRC_LAUNCHER_PATH, DST_LAUNCHER_PATH)
+    print(f"setting to read-only '{DST_LAUNCHER_PATH}'")
+    set_path_read_only(DST_LAUNCHER_PATH)
+
+print(f"creating build info file at '{DST_BUILD_INFO}'")
+create_build_info(target_path=DST_BUILD_INFO)
+set_path_read_only(DST_BUILD_INFO)
+
 print(f"creating shortcut to '{DST_LAUNCHER_LNK_PATH}'")
 DST_LAUNCHER_LNK_PATH.unlink(missing_ok=True)
 subprocess.run(
@@ -76,7 +107,7 @@ subprocess.run(
         str(DST_LAUNCHER_LNK_PATH),
         str(DST_LAUNCHER_PATH),
         "-iconPath",
-        str(LATEST_BUILD_ICON_PATH),
+        str(SRC_ICON_PATH),
     ]
 )
 print(f"setting to read-only: {DST_LAUNCHER_LNK_PATH}")
