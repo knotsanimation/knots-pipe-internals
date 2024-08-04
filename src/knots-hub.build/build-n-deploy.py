@@ -43,7 +43,7 @@ def gitget(command: list[str], cwd: Path) -> str:
     return out
 
 
-def create_build_info(target_path: Path, version: str):
+def create_build_info(target_path: Path, version: str = None):
     git_command = ["git", "rev-parse", "HEAD"]
     commit_hash = subprocess.check_output(git_command, cwd=THIS_DIR, text=True)
     commit_hash = commit_hash.strip("\n")
@@ -59,11 +59,11 @@ def create_build_info(target_path: Path, version: str):
         [
             f"date={datetime.datetime.now()}",
             f"machine={socket.gethostname()}",
-            f"version={version}",
             f"commit={commit_hash}",
             # remote is mostly added for beginners to know where the files come from
             f"remote={remote_url}",
         ]
+        + ([f"version={version}"] if version else [])
     )
     target_path.write_text(build_info, encoding="utf-8")
 
@@ -129,7 +129,7 @@ def deploy(
 
         build_info_path = deployed_latest_dir / ".deploy.info"
         LOGGER.info(f"creating build info file at '{build_info_path}'")
-        create_build_info(target_path=build_info_path, version=build_version)
+        create_build_info(target_path=build_info_path, version=None)
         return
 
     if not skip_checks:
