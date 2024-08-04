@@ -43,22 +43,29 @@ def gitget(command: list[str], cwd: Path) -> str:
     return out
 
 
-def create_build_info(target_dir: Path, version: str) -> Path:
-    """
-    Create a file storing metadata about this build process, for tracking purposes.
-    """
-    commit_hash = gitget(["rev-parse", "HEAD"], THIS_DIR)
-    content = "\n".join(
+def create_build_info(target_path: Path, version: str):
+    git_command = ["git", "rev-parse", "HEAD"]
+    commit_hash = subprocess.check_output(git_command, cwd=THIS_DIR, text=True)
+    commit_hash = commit_hash.strip("\n")
+
+    try:
+        git_command = ["git", "config", "remote.origin.url"]
+        remote_url = subprocess.check_output(git_command, cwd=THIS_DIR, text=True)
+
+    except Exception as error:
+        remote_url = str(error)
+
+    build_info = "\n".join(
         [
             f"date={datetime.datetime.now()}",
             f"machine={socket.gethostname()}",
-            f"commit={commit_hash}",
             f"version={version}",
+            f"commit={commit_hash}",
+            # remote is mostly added for beginners to know where the files come from
+            f"remote={remote_url}",
         ]
     )
-    target_path = target_dir / ".build.info"
-    target_path.write_text(content)
-    return target_path
+    target_path.write_text(build_info, encoding="utf-8")
 
 
 def update_installer_list(
@@ -151,7 +158,8 @@ def deploy(
     LOGGER.info(f"deploying build to '{deployed_dir}'")
     shutil.copytree(build_dir, deployed_dir)
     LOGGER.info(f"creating build info")
-    create_build_info(target_dir=deployed_dir, version=build_version)
+    build_info_path = deployed_dir / ".build.info"
+    create_build_info(target_path=build_info_path, version=build_version)
 
     LOGGER.info(f"creating 'latest' build to '{deployed_latest_dir}'")
     deploy_latest_dir(deployed_dir, deployed_latest_dir)
