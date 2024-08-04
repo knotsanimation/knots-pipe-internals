@@ -13,11 +13,11 @@ The script will verify:
 
 import argparse
 import datetime
+import getpass
 import json
 import logging
 import runpy
 import shutil
-import socket
 import subprocess
 import sys
 import tempfile
@@ -59,7 +59,7 @@ def create_build_info(target_path: Path, version: str = None):
     build_info = "\n".join(
         [
             f"date={datetime.datetime.now()}",
-            f"machine={socket.gethostname()}",
+            f"user={getpass.getuser()}",
             f"commit={commit_hash}",
             # remote is mostly added for beginners to know where the files come from
             f"remote={remote_url}",

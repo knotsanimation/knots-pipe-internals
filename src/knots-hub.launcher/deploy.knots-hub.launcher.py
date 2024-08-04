@@ -1,8 +1,8 @@
 import contextlib
 import datetime
+import getpass
 import os
 import shutil
-import socket
 import stat
 import subprocess
 import tempfile
@@ -26,7 +26,7 @@ def create_build_info(target_path: Path):
     build_info = "\n".join(
         [
             f"date={datetime.datetime.now()}",
-            f"machine={socket.gethostname()}",
+            f"user={getpass.getuser()}",
             f"commit={commit_hash}",
             # remote is mostly added for beginners to know where the files come from
             f"remote={remote_url}",
