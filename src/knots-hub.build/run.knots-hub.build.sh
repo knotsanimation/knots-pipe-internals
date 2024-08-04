@@ -18,4 +18,4 @@ poetry add ./knots-hub/
 poetry add nuitka==2.4.2
 poetry add Pillow  # needed for icon generation
 echo "running build script '$pyscript'"
-poetry run python "$pyscript" "N:\apps\knots-hub\builds" --icon_path "$PWD/knots-hub/icon.png"
+poetry run python "$pyscript" "N:\apps\knots-hub\builds" --icon_path "$PWD/knots-hub/icon.png" $@

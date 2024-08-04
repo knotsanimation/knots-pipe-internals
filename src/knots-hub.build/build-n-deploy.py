@@ -22,6 +22,7 @@ import subprocess
 import sys
 import tempfile
 from pathlib import Path
+from typing import Optional
 
 import knots_hub
 import knots_hub.__main__
@@ -84,18 +85,41 @@ def update_installer_list(
     )
 
 
+def deploy_latest_dir(src_dir: Path, dst_dir: Path):
+    if dst_dir.exists():
+        LOGGER.debug(f"removing '{dst_dir}'")
+        shutil.rmtree(dst_dir)
+    shutil.copytree(src_dir, dst_dir)
+    deploy_exe_latest_path = next(
+        dst_dir.glob(knots_hub.constants.EXECUTABLE_NAME + "*")
+    )
+    deploy_exe_latest_path.rename(deploy_exe_latest_path.with_stem("knots-hub"))
+
+
 def deploy(
     deploy_root: Path,
     build_script: Path,
     skip_checks=False,
-    icon_path: Path = None,
+    icon_path: Optional[Path] = None,
+    only_deploy_latest: Optional[str] = None,
 ):
     build_version = knots_hub.__version__
     build_dir = tempfile.mkdtemp(prefix="knots-hub-dev-deploy-")
 
-    deploy_dir = deploy_root / build_version
-    deploy_latest_dir = deploy_root / "latest"
+    deployed_dir = deploy_root / build_version
+    deployed_latest_dir = deploy_root / "latest"
     installs_list_path = deploy_root / "install-list.json"
+
+    if only_deploy_latest:
+        deployed_dir = deploy_root / only_deploy_latest
+        if not deployed_dir.exists():
+            raise FileNotFoundError(
+                f"The provided deployed version '{only_deploy_latest}' to deploy as "
+                f"latest doesn't exist on disk at '{deployed_dir}'"
+            )
+        LOGGER.info(f"creating 'latest' build to '{deployed_latest_dir}'")
+        deploy_latest_dir(deployed_dir, deployed_latest_dir)
+        return
 
     if not skip_checks:
 
@@ -104,9 +128,9 @@ def deploy(
                 f"Deploy root directory '{deploy_root}' provided does not exist"
             )
 
-        if deploy_dir.exists():
+        if deployed_dir.exists():
             raise ValueError(
-                f"Cannot deploy existing version '{build_version}' at '{deploy_dir}'"
+                f"Cannot deploy existing version '{build_version}' at '{deployed_dir}'"
             )
 
     # XXX: we don't use sys.argv after so safe to override
@@ -124,20 +148,13 @@ def deploy(
     LOGGER.info("building ...")
     runpy.run_path(str(build_script), run_name="__main__")
 
-    LOGGER.info(f"deploying build to '{deploy_dir}'")
-    shutil.copytree(build_dir, deploy_dir)
+    LOGGER.info(f"deploying build to '{deployed_dir}'")
+    shutil.copytree(build_dir, deployed_dir)
     LOGGER.info(f"creating build info")
-    create_build_info(target_dir=deploy_dir, version=build_version)
+    create_build_info(target_dir=deployed_dir, version=build_version)
 
-    LOGGER.info(f"creating 'latest' build to '{deploy_latest_dir}'")
-    if deploy_latest_dir.exists():
-        shutil.rmtree(deploy_latest_dir)
-    shutil.copytree(build_dir, deploy_latest_dir)
-    create_build_info(target_dir=deploy_latest_dir, version=build_version)
-    deploy_exe_latest_path = next(
-        deploy_latest_dir.glob(knots_hub.constants.EXECUTABLE_NAME + "*")
-    )
-    deploy_exe_latest_path.rename(deploy_exe_latest_path.with_stem("knots-hub"))
+    LOGGER.info(f"creating 'latest' build to '{deployed_latest_dir}'")
+    deploy_latest_dir(deployed_dir, deployed_latest_dir)
 
     LOGGER.info(f"cleaning build dir '{build_dir}'")
     shutil.rmtree(build_dir)
@@ -146,7 +163,7 @@ def deploy(
     update_installer_list(
         installer_list_path=installs_list_path,
         build_version=build_version,
-        build_path=deploy_dir.relative_to(installs_list_path.parent),
+        build_path=deployed_dir.relative_to(installs_list_path.parent),
     )
 
 
@@ -172,18 +189,25 @@ def cli(argv=None):
         default=False,
         help="prevent running filesystem check before build",
     )
+    parser.add_argument(
+        "--only_deploy_latest",
+        type=str,
+        default=None,
+        help="Do not build and instead just take the specified server deployed version and create the latest directory from it.",
+    )
     parsed = parser.parse_args(argv)
     deploy(
         deploy_root=parsed.deploy_root,
         build_script=BUILD_SCRIPT,
         skip_checks=parsed.skip_checks,
         icon_path=parsed.icon_path,
+        only_deploy_latest=parsed.only_deploy_latest,
     )
 
 
 if __name__ == "__main__":
     logging.basicConfig(
-        level=logging.INFO,
+        level=logging.DEBUG,
         format="{levelname: <7} | {asctime} [{name}] {message}",
         style="{",
         stream=sys.stdout,
