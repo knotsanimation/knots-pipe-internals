@@ -10,7 +10,10 @@ deployed version.
 
 # usage
 
-execute [`run.knots-hub.build.sh`](run.knots-hub.build.sh), everything else is automatic.
+- you might need to set the `BUILD_PYTHON_PATH` env var to set the path
+  to the python interpreter to use for the venv.
+- execute [`run.knots-hub.build.sh`](run.knots-hub.build.sh), everything else
+  is automatic.
 
 ## server output
 
