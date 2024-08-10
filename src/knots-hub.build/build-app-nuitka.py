@@ -59,6 +59,7 @@ def build(
         f"--output-filename={app_name}",
         f"--include-package={kloch_rezenv.__name__}",
         f"--include-package={kloch_kiche.__name__}",
+        f"--include-data-file={start_script_path.parent}={start_script_path.parent.name}/=**/*.ps1",
     ]
     # windows specific
     if icon_path:
