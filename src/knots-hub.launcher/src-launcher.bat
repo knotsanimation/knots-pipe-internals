@@ -8,7 +8,9 @@ set "configdir=%rootdir%..\configs"
 set "KNOTSHUB_USER_INSTALL_PATH=%LOCALAPPDATA%\knots-hub"
 set "KNOTSHUB_INSTALLER_LIST=%buildir%\install-list.json"
 set "KNOTSHUB_VENDOR_INSTALLERS_CONFIG=%configdir%\knots-hub.vendor-installers.json"
-set "KNOTSHUB_VENDOR_INSTALL_PATH=%LOCALAPPDATA%\knots-hub.vendors"
+:: not actually read by knots-hub but referenced in the installer config
+set "KNOTSHUB_VENDOR_INSTALL_ROOT=%LOCALAPPDATA%\knots-hub.vendors"
+set "KNOTSHUB_VENDOR_REZ_ROOT=%KNOTSHUB_VENDOR_INSTALL_ROOT%\rez"
 
 :: we assume the shortcut link is still defined as "knots-hub"
 :: (managed by knots-hub repository)
