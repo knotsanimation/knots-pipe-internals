@@ -20,7 +20,6 @@ import shutil
 import subprocess
 import sys
 import tempfile
-import time
 from pathlib import Path
 from typing import Optional
 
@@ -68,24 +67,10 @@ def create_build_info(target_path: Path, version: str = None):
     target_path.write_text(build_info, encoding="utf-8")
 
 
-def deploy_latest_dir(src_dir: Path, dst_dir: Path):
-    if dst_dir.exists():
-        LOGGER.debug(f"removing existing '{dst_dir}'")
-        shutil.rmtree(dst_dir)
-        # XXX: try to fix bug where copytree still complain the directory exists
-        time.sleep(0.25)
-    shutil.copytree(src_dir, dst_dir)
-    deploy_exe_latest_path = next(
-        dst_dir.glob(knots_hub.constants.EXECUTABLE_NAME + "*")
-    )
-    deploy_exe_latest_path.rename(deploy_exe_latest_path.with_stem("knots-hub"))
-
-
 def deploy(
     deploy_root: Path,
     build_script: Path,
     icon_path: Optional[Path] = None,
-    only_deploy_latest: Optional[str] = None,
 ):
 
     if not deploy_root.exists():
@@ -99,22 +84,6 @@ def deploy(
     build_dir = tempfile.mkdtemp(prefix="knots-hub-dev-deploy-")
 
     deployed_dir = deploy_root / build_version_filesafe
-    deployed_latest_dir = deploy_root / "latest"
-
-    if only_deploy_latest:
-        deployed_dir = deploy_root / only_deploy_latest
-        if not deployed_dir.exists():
-            raise FileNotFoundError(
-                f"The provided deployed version '{only_deploy_latest}' to deploy as "
-                f"latest doesn't exist on disk at '{deployed_dir}'"
-            )
-        LOGGER.info(f"creating 'latest' build to '{deployed_latest_dir}'")
-        deploy_latest_dir(deployed_dir, deployed_latest_dir)
-
-        build_info_path = deployed_latest_dir / ".deploy.info"
-        LOGGER.info(f"creating build info file at '{build_info_path}'")
-        create_build_info(target_path=build_info_path, version=None)
-        return
 
     # XXX: we don't use sys.argv after so safe to override
     sys.argv = [
@@ -136,9 +105,6 @@ def deploy(
     build_info_path = deployed_dir / ".build.info"
     LOGGER.info(f"creating build info file at '{build_info_path}'")
     create_build_info(target_path=build_info_path, version=build_version)
-
-    LOGGER.info(f"creating 'latest' build to '{deployed_latest_dir}'")
-    deploy_latest_dir(deployed_dir, deployed_latest_dir)
 
     LOGGER.info(f"cleaning build dir '{build_dir}'")
     shutil.rmtree(build_dir)
@@ -164,21 +130,11 @@ def cli(argv=None):
         default=None,
         help="filesystem path to an existing .ico or .png file.",
     )
-    parser.add_argument(
-        "--only_deploy_latest",
-        type=str,
-        default=None,
-        help=(
-            "An hub version existing on the server, that if specified, imply to not "
-            "build and instead just create the 'latest' version directory from it."
-        ),
-    )
     parsed = parser.parse_args(argv)
     deploy(
         deploy_root=parsed.deploy_root,
         build_script=BUILD_SCRIPT,
         icon_path=parsed.icon_path,
-        only_deploy_latest=parsed.only_deploy_latest,
     )
 
 

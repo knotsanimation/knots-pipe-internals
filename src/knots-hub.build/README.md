@@ -29,8 +29,8 @@ the launchers.
 Write files in root directory `N:\apps\knots-hub\builds`:
 
 - a directory for the currently built version
-- a `latest` directory, copy of the first directory
-- append/create the `install-list.json` used by the hub at runtime
+- `deploy.info` metadata file
+
 
 ## troubleshooting
 
