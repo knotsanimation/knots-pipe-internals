@@ -96,6 +96,9 @@ with backupdir(DST_DIR):
 
     print(f"creating bin directory '{DST_BIN_DIR}'")
     shutil.copytree(SRC_BIN_DIR, DST_BIN_DIR)
+    print(f"setting to read-only '{DST_BIN_DIR}'")
+    for binpath in DST_BIN_DIR.glob("*"):
+        set_path_read_only(binpath)
 
 print(f"creating build info file at '{DST_BUILD_INFO}'")
 create_build_info(target_path=DST_BUILD_INFO)
