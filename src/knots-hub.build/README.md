@@ -15,12 +15,16 @@ deployed version.
 - execute [`run.knots-hub.build.sh`](run.knots-hub.build.sh), everything else
   is automatic.
 
+Be careful when building a new knots-hub version with breaking change affecting
+the configs, you will also need to update and deploy those **at the same time**.
+
 ## server output
 
 Write files in root directory `N:\apps\knots-hub\builds`:
 
 - a directory for the currently built version
 - a `latest` directory, copy of the first directory
+- append/create the `install-list.json` used by the hub at runtime
 
 ## troubleshooting
 
