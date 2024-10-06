@@ -84,6 +84,7 @@ DST_DIR.mkdir(exist_ok=True)
 DST_BUILD_INFO = DST_DIR / "deploy.info"
 DST_LAUNCHER_PATH = DST_DIR / "knots-hub-launcher.bat"
 DST_LAUNCHER_LNK_PATH = DST_ROOT / "knots-hub.lnk"
+DST_BIN_DIR = DST_DIR / "bin"
 
 with backupdir(DST_DIR):
     DST_DIR.mkdir()
@@ -91,6 +92,15 @@ with backupdir(DST_DIR):
     shutil.copy2(SRC_LAUNCHER_PATH, DST_LAUNCHER_PATH)
     print(f"setting to read-only '{DST_LAUNCHER_PATH}'")
     set_path_read_only(DST_LAUNCHER_PATH)
+
+    print("creating bin directory")
+    DST_BIN_DIR.mkdir()
+    # !! the name of the bat file control how the artist will call it in the terminal
+    DST_BIN_KNOTSHUB_BAT = DST_BIN_DIR / "khub.bat"
+    DST_BIN_KNOTSHUB_BAT.write_text(
+        '@echo off\n start "" /B /WAIT %KNOTSHUB_SERVER_EXE_PATH%',
+        encoding="utf-8",
+    )
 
 print(f"creating build info file at '{DST_BUILD_INFO}'")
 create_build_info(target_path=DST_BUILD_INFO)
