@@ -9,5 +9,6 @@ $wsobject = New-Object -ComObject WScript.Shell;
 $shortcut = $wsobject.CreateShortcut($shortcutPath);
 # https://learn.microsoft.com/en-us/previous-versions/3s9bx7at(v=vs.80)
 $shortcut.IconLocation = "$iconPath";
-$shortcut.TargetPath = $referencePath;
+$shortcut.TargetPath = "%windir%\system32\cmd.exe";
+$shortcut.Arguments = "/K `"$referencePath`"";
 $shortcut.Save()
