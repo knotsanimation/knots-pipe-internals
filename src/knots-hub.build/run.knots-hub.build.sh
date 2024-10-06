@@ -18,7 +18,7 @@ git clone https://github.com/knotsanimation/knots-hub.git knots-hub
 poetry init --name knots-hub-build --no-interaction --python ^3.10
 if [ -n "$python_exe_path" ]; then
   echo using $python_exe_path
-	poetry env use "$1"
+	poetry env use "$python_exe_path"
 else
   echo using current implicit python interpreter
   poetry env info
