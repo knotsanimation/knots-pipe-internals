@@ -6,9 +6,9 @@ set "buildir=%rootdir%..\builds"
 set "configdir=%rootdir%..\configs"
 
 :: XXX: update those 3 variables to update the knots-hub version used by artists
-set "latestbuild=%buildir%\0.8.0-20241006142747"
-set "exepath=%latestbuild%\knots_hub-v0.8.0.exe"
-set "KNOTSHUB_INSTALLER=0.8.0+20241006142747=%latestbuild%"
+set "latestbuild=%buildir%\0.8.1-20241006172141"
+set "exepath=%latestbuild%\knots_hub-v0.8.1.exe"
+set "KNOTSHUB_INSTALLER=0.8.1+20241006172141=%latestbuild%"
 
 set "KNOTSHUB_USER_INSTALL_PATH=%LOCALAPPDATA%\knots-hub"
 set "KNOTSHUB_VENDOR_INSTALLERS_CONFIG=%configdir%\knots-hub.vendor-installers.json"
