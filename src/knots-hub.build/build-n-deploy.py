@@ -14,7 +14,6 @@ The script will verify:
 import argparse
 import datetime
 import getpass
-import json
 import logging
 import runpy
 import shutil
@@ -67,30 +66,6 @@ def create_build_info(target_path: Path, version: str = None):
         + ([f"version={version}"] if version else [])
     )
     target_path.write_text(build_info, encoding="utf-8")
-
-
-def update_installer_list(
-    installer_list_path: Path,
-    build_version: str,
-    build_path: Path,
-):
-    """
-    Create the config file as expected by knots-hub to indicate the available version
-    of knots-hub.
-    """
-    content = {}
-    if installer_list_path.exists():
-        with installer_list_path.open("r", encoding="utf-8") as installer_list_file:
-            content = json.load(installer_list_file)
-
-    content[build_version] = str(build_path)
-
-    json.dump(
-        content,
-        installer_list_path.open("w", encoding="utf-8"),
-        indent=4,
-        sort_keys=True,
-    )
 
 
 def deploy_latest_dir(src_dir: Path, dst_dir: Path):
@@ -167,13 +142,6 @@ def deploy(
 
     LOGGER.info(f"cleaning build dir '{build_dir}'")
     shutil.rmtree(build_dir)
-
-    LOGGER.info(f"updating installer list '{installs_list_path}'")
-    update_installer_list(
-        installer_list_path=installs_list_path,
-        build_version=build_version,
-        build_path=deployed_dir.relative_to(installs_list_path.parent),
-    )
 
     build_info_path = deploy_root / "deploy.info"
     LOGGER.info(f"creating build info file at '{build_info_path}'")
