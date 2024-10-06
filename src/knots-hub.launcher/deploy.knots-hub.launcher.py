@@ -78,6 +78,7 @@ DST_ROOT = Path(r"N:\apps\knots-hub")
 SHORTCUT_SCRIPT_PATH = THISDIR / "create-windows-shortcut.ps1"
 SRC_ICON_PATH = DST_ROOT / "builds" / "latest" / "icon.ico"
 SRC_LAUNCHER_PATH = THISDIR / "src-launcher.bat"
+SRC_BIN_DIR = THISDIR / "bin"
 
 DST_DIR = DST_ROOT / "launchers"
 DST_DIR.mkdir(exist_ok=True)
@@ -93,14 +94,8 @@ with backupdir(DST_DIR):
     print(f"setting to read-only '{DST_LAUNCHER_PATH}'")
     set_path_read_only(DST_LAUNCHER_PATH)
 
-    print("creating bin directory")
-    DST_BIN_DIR.mkdir()
-    # !! the name of the bat file control how the artist will call it in the terminal
-    DST_BIN_KNOTSHUB_BAT = DST_BIN_DIR / "khub.bat"
-    DST_BIN_KNOTSHUB_BAT.write_text(
-        '@echo off\n start "" /B /WAIT %KNOTSHUB_SERVER_EXE_PATH% %*',
-        encoding="utf-8",
-    )
+    print(f"creating bin directory '{DST_BIN_DIR}'")
+    shutil.copytree(SRC_BIN_DIR, DST_BIN_DIR)
 
 print(f"creating build info file at '{DST_BUILD_INFO}'")
 create_build_info(target_path=DST_BUILD_INFO)
