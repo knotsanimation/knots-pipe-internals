@@ -98,7 +98,7 @@ with backupdir(DST_DIR):
     # !! the name of the bat file control how the artist will call it in the terminal
     DST_BIN_KNOTSHUB_BAT = DST_BIN_DIR / "khub.bat"
     DST_BIN_KNOTSHUB_BAT.write_text(
-        '@echo off\n start "" /B /WAIT %KNOTSHUB_SERVER_EXE_PATH%',
+        '@echo off\n start "" /B /WAIT %KNOTSHUB_SERVER_EXE_PATH% %*',
         encoding="utf-8",
     )
 
