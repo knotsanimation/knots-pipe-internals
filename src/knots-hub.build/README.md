@@ -5,8 +5,13 @@ the server.
 
 The build system use [nuitka](https://nuitka.net/) for packaging.
 
-We assume you ALWAYS want to build a newer version relative to existing
-deployed version.
+Each build is timestamped to the current date so running the script 2 time will
+produce 2 build on the server.
+
+Builds use the latest version of knots-hub available remotely by default.
+
+Once a build is completed and tested you can make it availble to user by updating
+the launchers.
 
 # usage
 
@@ -15,8 +20,9 @@ deployed version.
 - execute [`run.knots-hub.build.sh`](run.knots-hub.build.sh), everything else
   is automatic.
 
-Be careful when building a new knots-hub version with breaking change affecting
-the configs, you will also need to update and deploy those **at the same time**.
+> [!TIP]
+> Call `run.knots-hub.build.sh --help` to see build options
+
 
 ## server output
 
@@ -33,8 +39,5 @@ Write files in root directory `N:\apps\knots-hub\builds`:
 If you have any problem with the last build you just deploy on the server,
 you could delete it version folder on the server and restart the build.
 
-However keep in mind that if someone started knots-hub in the interval since 
-the build is deployed on the server then this might create issues for
-this user.
 
 

@@ -109,16 +109,22 @@ def deploy_latest_dir(src_dir: Path, dst_dir: Path):
 def deploy(
     deploy_root: Path,
     build_script: Path,
-    skip_checks=False,
     icon_path: Optional[Path] = None,
     only_deploy_latest: Optional[str] = None,
 ):
-    build_version = knots_hub.__version__
+
+    if not deploy_root.exists():
+        raise FileExistsError(
+            f"Deploy root directory '{deploy_root}' provided does not exist"
+        )
+
+    now = datetime.datetime.now().strftime("%Y%m%d%H%M%S")
+    build_version = f"{knots_hub.__version__}+{now}"
+    build_version_filesafe = build_version.replace("+", "-")
     build_dir = tempfile.mkdtemp(prefix="knots-hub-dev-deploy-")
 
-    deployed_dir = deploy_root / build_version
+    deployed_dir = deploy_root / build_version_filesafe
     deployed_latest_dir = deploy_root / "latest"
-    installs_list_path = deploy_root / "install-list.json"
 
     if only_deploy_latest:
         deployed_dir = deploy_root / only_deploy_latest
@@ -134,18 +140,6 @@ def deploy(
         LOGGER.info(f"creating build info file at '{build_info_path}'")
         create_build_info(target_path=build_info_path, version=None)
         return
-
-    if not skip_checks:
-
-        if not deploy_root.exists():
-            raise FileExistsError(
-                f"Deploy root directory '{deploy_root}' provided does not exist"
-            )
-
-        if deployed_dir.exists():
-            raise ValueError(
-                f"Cannot deploy existing version '{build_version}' at '{deployed_dir}'"
-            )
 
     # XXX: we don't use sys.argv after so safe to override
     sys.argv = [
@@ -203,22 +197,18 @@ def cli(argv=None):
         help="filesystem path to an existing .ico or .png file.",
     )
     parser.add_argument(
-        "--skip_checks",
-        action="store_true",
-        default=False,
-        help="prevent running filesystem check before build",
-    )
-    parser.add_argument(
         "--only_deploy_latest",
         type=str,
         default=None,
-        help="Do not build and instead just take the specified server deployed version and create the latest directory from it.",
+        help=(
+            "An hub version existing on the server, that if specified, imply to not "
+            "build and instead just create the 'latest' version directory from it."
+        ),
     )
     parsed = parser.parse_args(argv)
     deploy(
         deploy_root=parsed.deploy_root,
         build_script=BUILD_SCRIPT,
-        skip_checks=parsed.skip_checks,
         icon_path=parsed.icon_path,
         only_deploy_latest=parsed.only_deploy_latest,
     )
