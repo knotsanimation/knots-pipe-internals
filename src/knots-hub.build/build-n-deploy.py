@@ -13,16 +13,15 @@ The script will verify:
 
 import argparse
 import datetime
-import getpass
 import logging
 import runpy
 import shutil
-import subprocess
 import sys
 import tempfile
 from pathlib import Path
 from typing import Optional
 
+import pipeintlib
 import knots_hub
 import knots_hub.__main__
 
@@ -31,40 +30,6 @@ THIS_DIR = Path(__file__).parent.resolve()
 LOGGER = logging.getLogger(Path(__file__).stem)
 
 BUILD_SCRIPT = THIS_DIR / "build-app-nuitka.py"
-
-
-def gitget(command: list[str], cwd: Path) -> str:
-    """
-    Call git and return its output.
-    """
-    out = subprocess.check_output(["git"] + command, cwd=cwd, text=True)
-    out = out.rstrip("\n").rstrip(" ")
-    return out
-
-
-def create_build_info(target_path: Path, version: str = None):
-    git_command = ["git", "rev-parse", "HEAD"]
-    commit_hash = subprocess.check_output(git_command, cwd=THIS_DIR, text=True)
-    commit_hash = commit_hash.strip("\n")
-
-    try:
-        git_command = ["git", "config", "remote.origin.url"]
-        remote_url = subprocess.check_output(git_command, cwd=THIS_DIR, text=True)
-
-    except Exception as error:
-        remote_url = str(error)
-
-    build_info = "\n".join(
-        [
-            f"date={datetime.datetime.now()}",
-            f"user={getpass.getuser()}",
-            f"commit={commit_hash}",
-            # remote is mostly added for beginners to know where the files come from
-            f"remote={remote_url}",
-        ]
-        + ([f"version={version}"] if version else [])
-    )
-    target_path.write_text(build_info, encoding="utf-8")
 
 
 def deploy(
@@ -81,7 +46,7 @@ def deploy(
     now = datetime.datetime.now().strftime("%Y%m%d%H%M%S")
     build_version = f"{knots_hub.__version__}+{now}"
     build_version_filesafe = build_version.replace("+", "-")
-    build_dir = tempfile.mkdtemp(prefix="knots-hub-dev-deploy-")
+    build_dir = Path(tempfile.mkdtemp(prefix="knots-hub-dev-deploy-"))
 
     deployed_dir = deploy_root / build_version_filesafe
 
@@ -104,14 +69,22 @@ def deploy(
     shutil.copytree(build_dir, deployed_dir)
     build_info_path = deployed_dir / ".build.info"
     LOGGER.info(f"creating build info file at '{build_info_path}'")
-    create_build_info(target_path=build_info_path, version=build_version)
+    pipeintlib.create_build_info_file(
+        target_path=build_info_path,
+        git_repo=THIS_DIR,
+        extra_lines=[f"build-version={build_version}"],
+    )
 
     LOGGER.info(f"cleaning build dir '{build_dir}'")
-    shutil.rmtree(build_dir)
+    pipeintlib.rmtree(build_dir)
 
     build_info_path = deploy_root / "deploy.info"
     LOGGER.info(f"creating build info file at '{build_info_path}'")
-    create_build_info(target_path=build_info_path, version=build_version)
+    pipeintlib.create_build_info_file(
+        target_path=build_info_path,
+        git_repo=THIS_DIR,
+        extra_lines=[f"build-version={build_version}"],
+    )
 
 
 def cli(argv=None):

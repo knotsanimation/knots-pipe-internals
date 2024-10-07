@@ -14,6 +14,7 @@ The deploy script may need some of the following software:
 - a _python_ interpreter (3.7+)
 - _git-bash_ to execute shell script on Windows
 - _git_ installed and available via the `git` command
+- the `pipeintlib` at root to be in the `PYTHONPATH`
 
 If you want to install some depencies for developing code, `poetry` will be 
 required to interpret the `pyproject.toml` (the dependencies are not
