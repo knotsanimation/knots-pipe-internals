@@ -2,7 +2,7 @@
 
 :: supposdly N:\apps\knots-hub\launchers
 set "rootdir=%~dp0"
-set "bindir=%rootdir%bin"
+set "bindir=%rootdir%..\..\..\env\bin"
 set "buildir=%rootdir%..\builds"
 set "configdir=%rootdir%..\configs"
 
