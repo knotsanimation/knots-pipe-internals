@@ -8,9 +8,9 @@ rules:
 
 from pathlib import PurePosixPath
 
-rootdir = PurePosixPath("@SCRIPTDIR@")
-bindir = rootdir / "bin"
-knotshubdir = rootdir / ".." / ".." / "apps" / "knots-hub"
+scriptdir = PurePosixPath("@SCRIPTDIR@")
+bindir = scriptdir / ".." / "bin"
+knotshubdir = scriptdir / ".." / ".." / "apps" / "knots-hub"
 buildir = knotshubdir / "builds"
 configdir = knotshubdir / "configs"
 
