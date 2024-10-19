@@ -21,7 +21,14 @@ import tempfile
 from pathlib import Path
 from typing import Optional
 
-import pipeintlib
+try:
+    import pipeintlib
+except ModuleNotFoundError:
+    print("ModuleNotFoundError: make sure `pipeintlib` is in the PYTHONPATH:")
+    modulepath = Path(__file__).parent.parent.parent
+    print(f'    export PYTHONPATH="{modulepath}"')
+    sys.exit(1)
+
 import knots_hub
 import knots_hub.__main__
 
