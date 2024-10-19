@@ -30,6 +30,9 @@ ENVIRONMENT = {
     ),
     "KNOTSHUB_VENDOR_INSTALL_ROOT": "%LOCALAPPDATA%/knots-hub.vendors",
     "KNOTSHUB_VENDOR_REZ_ROOT": "%KNOTSHUB_VENDOR_INSTALL_ROOT%/rez",
+    "REZ_LOCAL_DATA_ROOT": "%HOME%/rez",
+    # defined here because need to be created before rez launch
+    "REZ_CACHE_PACKAGES_PATH": "%REZ_LOCAL_DATA_ROOT%/.cache",
     "PATH": [
         f"%PATH%",
         f"{bindir}",
