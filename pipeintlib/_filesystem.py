@@ -3,6 +3,7 @@ import logging
 import os
 import shutil
 import stat
+import uuid
 from pathlib import Path
 from typing import Callable
 
@@ -69,7 +70,23 @@ def backupdir(src_dir: Path, logger: Callable[[str], None]):
     """
     backup_path = src_dir.with_stem(f"{src_dir.stem}.backup")
     logger(f"creating backup '{backup_path}'")
-    src_dir.rename(backup_path)
+
+    try:
+        src_dir.rename(backup_path)
+    except PermissionError:
+        logger(f"warning: got permission error; trying a folder refresh")
+        try:
+            tmpfile = backup_path / ("tmppp" + uuid.uuid4().hex)
+            tmpfile.write_text(
+                "this is a hack to force the system to update the folder status"
+            )
+            tmpfile.unlink()
+        except:
+            pass
+
+        # finally retry the renaming
+        src_dir.rename(backup_path)
+
     try:
         yield
     except:
