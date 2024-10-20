@@ -16,8 +16,8 @@ buildir = knotshubdir / "builds"
 configdir = knotshubdir / "configs"
 
 # those 2 next variables determine which version of knots-hub the artist need to use
-last_build_exe_name = "knots_hub-v0.12.0.exe"
-last_build_name = "0.12.0-20241019183110"
+last_build_exe_name = "knots_hub-v0.12.1.exe"
+last_build_name = "0.12.1-20241020150112"
 
 last_build_version = last_build_name.replace("-", "+")
 last_build_path = buildir / last_build_name
