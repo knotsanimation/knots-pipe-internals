@@ -10,6 +10,7 @@ from pathlib import PurePosixPath
 
 scriptdir = PurePosixPath("@SCRIPTDIR@")
 bindir = scriptdir / ".." / "bin"
+profilesdir = scriptdir / ".." / "profiles"
 knotshubdir = scriptdir / ".." / ".." / "apps" / "knots-hub"
 buildir = knotshubdir / "builds"
 configdir = knotshubdir / "configs"
@@ -22,6 +23,8 @@ last_build_version = last_build_name.replace("-", "+")
 last_build_path = buildir / last_build_name
 
 ENVIRONMENT = {
+    # __________________________
+    # // knots-hub configuration
     "KNOTSHUB_SERVER_EXE_PATH": str(last_build_path / last_build_exe_name),
     "KNOTSHUB_INSTALLER": f"{last_build_version}={last_build_path}",
     "KNOTSHUB_USER_INSTALL_PATH": "%LOCALAPPDATA%/knots-hub",
@@ -30,13 +33,23 @@ ENVIRONMENT = {
     ),
     "KNOTSHUB_VENDOR_INSTALL_ROOT": "%LOCALAPPDATA%/knots-hub.vendors",
     "KNOTSHUB_VENDOR_REZ_ROOT": "%KNOTSHUB_VENDOR_INSTALL_ROOT%/rez",
+    # ________________________________
+    # // used by knots-hub indirectly:
     "REZ_LOCAL_DATA_ROOT": "%HOME%/rez",
     # defined here because need to be created before rez launch
     "REZ_CACHE_PACKAGES_PATH": "%REZ_LOCAL_DATA_ROOT%/.cache",
+    # ________________________________
+    # // used for the general pipeline
+    "KNOTS_LOCAL_DATA_ROOT": "%LOCALAPPDATA%/knots",
     "PATH": [
         f"%PATH%",
         f"{bindir}",
     ],
+    # ________
+    # // kloch
+    "KLOCH_CONFIG_CLI_LOGGING_PATHS": "%KNOTS_LOCAL_DATA_ROOT%/kloch.log",
+    "KLOCH_CONFIG_CLI_SESSION_PATH": "%KNOTS_LOCAL_DATA_ROOT%/kloch-sessions",
+    "KLOCH_CONFIG_PROFILE_ROOTS": str(profilesdir),
 }
 
 if __name__ == "__main__":
