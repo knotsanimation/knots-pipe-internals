@@ -23,6 +23,8 @@ last_build_version = last_build_name.replace("-", "+")
 last_build_path = buildir / last_build_name
 
 ENVIRONMENT = {
+    # meta variable to increment everytime this file is modified; for debugging
+    "__KNOTS_ENV_VERSION__": "1",
     # __________________________
     # // knots-hub configuration
     "KNOTSHUB_SERVER_EXE_PATH": str(last_build_path / last_build_exe_name),
