@@ -16,15 +16,15 @@ buildir = knotshubdir / "builds"
 configdir = knotshubdir / "configs"
 
 # those 2 next variables determine which version of knots-hub the artist need to use
-last_build_exe_name = "knots_hub-v0.13.1.exe"
-last_build_name = "0.13.1-20241026164525"
+last_build_exe_name = "knots_hub-v0.13.2.exe"
+last_build_name = "0.13.2-20241027113413"
 
 last_build_version = last_build_name.replace("-", "+")
 last_build_path = buildir / last_build_name
 
 ENVIRONMENT = {
     # meta variable to increment everytime this file is modified; for debugging
-    "__KNOTS_ENV_VERSION__": "1",
+    "__KNOTS_ENV_VERSION__": "2",
     # __________________________
     # // knots-hub configuration
     "KNOTSHUB_SERVER_EXE_PATH": str(last_build_path / last_build_exe_name),
