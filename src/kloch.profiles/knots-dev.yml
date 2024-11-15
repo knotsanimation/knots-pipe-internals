@@ -1,0 +1,16 @@
+__magic__: kloch_profile:4
+identifier: knots-dev
+version: 0.1.0
+inherit: knots
+launchers:
+  .base:
+    environ:
+      PATH:
+        - $PATH
+        - $KNOTS_LOCAL_REZ_SCRIPTS_PATH
+  .system@os=windows:
+    priority: 20
+    command:
+      - powershell
+      - -NoExit
+      - -NoLogo

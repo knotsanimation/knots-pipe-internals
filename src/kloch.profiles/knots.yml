@@ -1,4 +1,4 @@
-__magic__: kloch_profile:3
+__magic__: kloch_profile:4
 identifier: knots
 version: 0.1.0
 launchers:
@@ -11,6 +11,7 @@ launchers:
       REZ_CONFIG_FILE: $KNOTS_SKYNET_PATH\apps\rez\config\rezconfig-main.yml
       KNOTS_PROD: ""
   rezenv:
+    priority: 10
     environ:
       PATH:
         - $PATH

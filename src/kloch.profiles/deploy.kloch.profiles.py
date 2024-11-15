@@ -12,6 +12,7 @@ DST_BUILD_INFO = DST_DIR / "deploy.info"
 DST_PATHS_MAPPING = {
     THISDIR / "echoes.yml": DST_DIR / "echoes.yml",
     THISDIR / "knots.yml": DST_DIR / "knots.yml",
+    THISDIR / "knots-dev.yml": DST_DIR / "knots-dev.yml",
 }
 
 
